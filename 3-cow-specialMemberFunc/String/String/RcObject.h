@@ -35,6 +35,11 @@ public:
         return _ref;
     }
 
+    bool isShared()
+    {
+        return _ref > 1;
+    }
+
 private:
     RefType _ref;
     bool _shareable;

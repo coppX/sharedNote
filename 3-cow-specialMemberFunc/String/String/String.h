@@ -5,6 +5,7 @@
 
 // C++11之后规定string不允许使用COW(Copy on Write)技术实现，改用SSO(Small Basic_String Optimization)
 // https://stackoverflow.com/questions/12199710/legality-of-cow-stdstring-implementation-in-c11
+// 并且多线程中COW实现的string会变慢
 
 // SSO将基于大多数字符串比较短的特点，利用string对象本身的栈空间来存放短字符串。当字符串长度大于某个值时，使用eager copy的方式。
 // SSO将字符串分为短字符串和长字符串两种场景
@@ -126,7 +127,12 @@ public:
     reference operator[] (size_type pos)
     {
         assert(pos < size() && "string out of index");
-        //COW待实现
+        //copy on write!
+        if (_value._refCount->isShared()) 
+        {
+            _value._refCount->subRef();
+            _realloc();
+        }
         return *(data()) + pos;
     }
 
@@ -312,6 +318,15 @@ private:
         _value._data = _allocator.allocate(_value._capacity);
         std::memcpy(_value._data, s, n);
         _value._data[n] = '\0';
+    }
+
+    void _realloc()
+    {
+        value_type* temp = _allocator.allocate(_value._capacity);
+        std::memcpy(temp, _value._data, _value._size);
+        _value._data = temp;
+        _value._data[_value._size] = '\0';
+        _value._refCount->setRef(1);
     }
 
     void _setSize(size_type s)
