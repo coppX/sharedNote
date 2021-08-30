@@ -117,7 +117,7 @@ public:
     // -------------------------
     reference at(size_type pos)
     {
-        static_assert(pos < size(), "pos out of range");
+        assert(pos < size() && "pos out of range");
         return (*this)[pos];
     }
 
@@ -125,20 +125,20 @@ public:
     // 而标准严格规定了哪些成员方法可以导致迭代器失效，其中不包括这个方法
     reference operator[] (size_type pos)
     {
-        static_assert(pos < size(), "string out of index");
+        assert(pos < size() && "string out of index");
         //COW待实现
         return *(data()) + pos;
     }
 
     reference front()
     {
-        static_assert(!empty(), "string is empty");
+        assert(!empty() && "string is empty");
         return *data();
     }
 
     reference back()
     {
-        static_assert(!empty(), "string is empty");
+        assert(!empty() && "string is empty");
         return *(data() + size() - 1);
     }
 
