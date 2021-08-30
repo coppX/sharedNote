@@ -24,7 +24,7 @@ private:
     typedef pointer                                 iterator;
     typedef const iterator                          const_iterator;
     // typedef std::atomic_int                         refcount_type;   
-    typedef RCObject<int>                           refcount_type;                    
+    typedef RCObject<int>                           refcount_type;
 public:
     //constructor
     Basic_String()
@@ -34,7 +34,8 @@ public:
     {
         if (_value._data)
         {
-            if (_value._refCount->subRef() <= 0)
+            _value._refCount->subRef();
+            if (_value._refCount->getRef() <= 0)
             {
                 get_allocator().deallocate(_value._data);
                 delete _value._refCount;
@@ -73,8 +74,6 @@ public:
         get_allocator() = Other.get_allocator();
     }
 
-    //Basic_String(const Basic_String& Other, const allocator_type& Alloc);
-
     Basic_String(Basic_String&& Other)
         : _value(std::move(Other._value))
     {
@@ -90,7 +89,8 @@ public:
             //浅拷贝内存，原来字符串的的计数减一
             if (_value._data)
             {
-                if (_value._refCount->subRef() <= 0)
+                _value._refCount->subRef();
+                if (_value._refCount->getRef() <= 0)
                 {//释放掉原来的空间
                     get_allocator().deallocate(_value._data);
                     delete _value._refCount;
@@ -124,6 +124,21 @@ public:
 
     // 如果用COW实现，那么 non-const operator[] 可能会导致迭代器失效。
     // 而标准严格规定了哪些成员方法可以导致迭代器失效，其中不包括这个方法
+    // per the standard 21.4.1 p6, invalidation of iterators/references is only allowed for
+    // 根据标准21.4.1 p6,仅允许迭代器/引用失效:
+    // — as an argument to any standard library function taking a reference to non-const basic_string as an argument.
+    // 当non-const basic_string作为任何标准库函数的参数
+    // — Calling non-const member functions, except operator[], at, front, back, begin, rbegin, end, and rend.
+    // 调用非成员函数，除了operator[], at, front, back, begin, rbegin, end和rend除外
+
+
+    // 也就是operator[]函数不允许返回的迭代器/引用失效，但是COW实现的string在operator[]操作时会进行内存拷贝操作，这会使引用失效。
+    // 例子来源: https://stackoverflow.com/a/12199969
+    // std::string a("something"); c
+    // har& c1 = a[0]; 
+    // std::string b(a);  因为这里有两个string指向同一个内存buffer
+    // char& c2 = a[1];   所以这里的operator[]操作会引起COW
+    // 这里的COW操作会使上面的c1引用失效，虽然此时c1还保留值's'，但是此时这块内存只是string b在使用，c1就没有指向a了，因为a已经COW了
     reference operator[] (size_type pos)
     {
         assert(pos < size() && "string out of index");
@@ -163,22 +178,22 @@ public:
     // -------------------
     iterator begin()
     {
-
+        return data();
     }
 
     const_iterator cbegin() const
     {
-
+        return data();
     }
 
     iterator end()
     {
-
+        return data() + size() - 1;
     }
 
     const_iterator cend() const
     {
-
+        return data() + size() - 1;
     }
 
     // -------------------

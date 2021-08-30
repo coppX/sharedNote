@@ -1,46 +1,34 @@
+#include <atomic>
+//#include <stdatomic.h>
 template<typename RefType>
 class RCObject
 {
-public:
-    RCObject()
-    : _ref(0)
-    , _shareable(true)
-    {}
-    RCObject(const RCObject& obj)
+public:    
+    void setRef(int v)
     {
-        _ref = obj._ref;
-        _shareable = obj._shareable;
+        std::atomic_store(&_ref, v);
     }
 
-    ~RCObject()
-    {}
-    
-    void setRef(RefType v)
+    void addRef()
     {
-        _ref = v;
+        std::atomic_fetch_add_explicit(&_ref, 1, std::memory_order_relaxed);
     }
 
-    RefType addRef()
+    void subRef()
     {
-        return ++_ref;
-    }
-
-    RefType subRef()
-    {
-        return --_ref;
+        std::atomic_fetch_add_explicit(&_ref, -1, std::memory_order_acq_rel);
     }
 
     RefType getRef()
     {
-        return _ref;
+        return std::atomic_load_explicit(&_ref, std::memory_order_relaxed);
     }
 
     bool isShared()
     {
-        return _ref > 1;
+        return getRef() > 1;
     }
 
 private:
-    RefType _ref;
-    bool _shareable;
+    std::atomic<RefType> _ref{0};
 };
