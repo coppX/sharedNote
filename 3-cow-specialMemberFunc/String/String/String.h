@@ -31,8 +31,18 @@ public:
 
     ~Basic_String()
     {
-        //_allocator.destroy();
-        _allocator.deallocate(_value._data);
+        if (_value._data)
+        {
+            if (_value._refCount->subRef() <= 0)
+            {
+                get_allocator().deallocate(_value._data);
+                delete _value._refCount;
+            }
+            _value._data = nullptr;
+            _value._size = 0;
+            _value._capacity = 0;
+            _value._refCount = nullptr;
+        }
     }
 
     Basic_String(const CharT* s)
@@ -40,14 +50,14 @@ public:
         size_type len = strlen(s) / sizeof(value_type);
         _init(s, len);
         _setSize(len);
-        _value._refCount.setRef(1);
+        _value._refCount->setRef(1);
     }
 
     Basic_String(const CharT* s, size_type n)
     {
         _init(s, n);
         _setSize(n);
-        _value._refCount.setRef(1);
+        _value._refCount->setRef(1);
     }
 
     Basic_String(size_type n, CharT c)
@@ -58,7 +68,7 @@ public:
     Basic_String(const Basic_String& Other)
     {
         _value = Other._value;
-        Other._value._refCount.addRef();
+        Other._value._refCount->addRef();
         get_allocator() = Other.get_allocator();
     }
 
@@ -74,19 +84,22 @@ public:
 
     Basic_String& operator=(Basic_String& Other)
     {
-        if (_value._data != Other._data) 
+        if (_value._data != Other._value._data) 
         {
             //浅拷贝内存，原来字符串的的计数减一
-            if (_value._refCount.getRef() > 0)
+            if (_value._data)
             {
-                if (_value._refCount.subRef() == 0)
+                if (_value._refCount->subRef() <= 0)
                 {//释放掉原来的空间
                     get_allocator().deallocate(_value._data);
+                    delete _value._refCount;
+                    _value._refCount = nullptr;
                 }
             }
-            //新的引用计数+1
-            Other._value._refCount.addRef();
             _value = Other._value;
+            //新的引用计数+1
+            Other._value._refCount->addRef();
+            
             get_allocator() = Other.get_allocator();
         }
         return *this;
@@ -263,13 +276,13 @@ private:
         value_type*          _data;
         size_type            _size;
         size_type            _capacity;
-        refcount_type       _refCount;
+        refcount_type*       _refCount;
 
         value()
         : _data(nullptr)
         , _size(0)
         , _capacity(0)
-        , _refCount()
+        , _refCount(new refcount_type())
         {}
 
         value(const value& other)
@@ -277,6 +290,16 @@ private:
             _data = other._data;
             _size = other._size;
             _capacity = other._capacity;
+            _refCount = other._refCount;
+        }
+
+        value& operator=(value& other)
+        {
+            _data = other._data;
+            _size = other._size;
+            _capacity = other._capacity;
+            _refCount = other._refCount;
+            return *this;
         }
     }                       _value;
     
@@ -288,6 +311,7 @@ private:
         _value._capacity = 2 * n;
         _value._data = _allocator.allocate(_value._capacity);
         std::memcpy(_value._data, s, n);
+        _value._data[n] = '\0';
     }
 
     void _setSize(size_type s)
