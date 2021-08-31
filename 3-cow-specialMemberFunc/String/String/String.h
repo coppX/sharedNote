@@ -23,7 +23,6 @@ private:
     typedef typename allocator_type::pointer        pointer;
     typedef pointer                                 iterator;
     typedef const iterator                          const_iterator;
-    // typedef std::atomic_int                         refcount_type;   
     typedef RCObject<int>                           refcount_type;
 public:
     //constructor
@@ -52,14 +51,12 @@ public:
         size_type len = strlen(s) / sizeof(value_type);
         _init(s, len);
         _setSize(len);
-        _value._refCount->setRef(1);
     }
 
     Basic_String(const CharT* s, size_type n)
     {
         _init(s, n);
         _setSize(n);
-        _value._refCount->setRef(1);
     }
 
     Basic_String(size_type n, CharT c)
@@ -148,7 +145,7 @@ public:
             _value._refCount->subRef();
             _realloc();
         }
-        return *(data()) + pos;
+        return *(data() + pos);
     }
 
     reference front()
@@ -333,6 +330,7 @@ private:
         _value._data = _allocator.allocate(_value._capacity);
         std::memcpy(_value._data, s, n);
         _value._data[n] = '\0';
+        _value._refCount->setRef(1);
     }
 
     void _realloc()
@@ -341,6 +339,7 @@ private:
         std::memcpy(temp, _value._data, _value._size);
         _value._data = temp;
         _value._data[_value._size] = '\0';
+        _value._refCount = new refcount_type();
         _value._refCount->setRef(1);
     }
 
