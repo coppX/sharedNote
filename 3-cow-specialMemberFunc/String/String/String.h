@@ -311,7 +311,7 @@ private:
             _refCount = other._refCount;
         }
 
-        value& operator=(value& other)
+        const value& operator=(const value& other)
         {
             _data = other._data;
             _size = other._size;
