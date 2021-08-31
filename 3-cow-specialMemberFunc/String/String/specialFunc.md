@@ -72,13 +72,14 @@ class demo{
 
 ```cpp
 class demo{
-    demo& operator=(demo&& d)
+    demo& operator=(demo&& d)   //这里的参数不能是const
     {
         num1 = d.num1;
         num2 = d.num2;
         d.num1 = d.num2 = nullptr;
         // num1 = std::move(d.num1);
         // num2 = std::move(d.num2);
+        return *this;
     }
 };
 ```
@@ -87,4 +88,4 @@ class demo{
 
 # std::move
 
-
+# std::forward
