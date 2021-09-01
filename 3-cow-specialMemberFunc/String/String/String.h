@@ -185,12 +185,12 @@ public:
 
     iterator end()
     {
-        return data() + size() - 1;
+        return data() + size();
     }
 
     const_iterator cend() const
     {
-        return data() + size() - 1;
+        return data() + size();
     }
 
     // -------------------
