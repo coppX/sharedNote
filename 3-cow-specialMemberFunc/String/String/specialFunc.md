@@ -86,6 +86,10 @@ class demo{
 为什么拷贝构造等函数能访问另外一个同类型对象的私有成员?  
 书上不是说私有成员不能直接访问私有成员，而是通过成员函数来访问，那上面的`d.num1`是怎么回事？其实这里说的不能访问私有成员是针对的类型来说的，不是针对对象来说的。这里的`private`是用来限制类外的东西访问类里面的东西是有限制的
 
+## 析构函数
+和构造函数的操作相反， 构造函数初始化对象的非static数据成员，析构函数是否对象使用的资源，并销毁对象的非static数据成员。析构函数没有参数和返回值，所以他不能被重载，一个类只能有一个析构函数。  
+在一个构造函数中，成员的初始化是在函数体执行之前完成的，而且按照它们在类中出现的顺序进行初始化。在一个析构函数中，首先执行函数体，然后再销毁成员，成员按照初始化顺序逆序销毁。
+
 # std::move 和 std::forward
 ## 引用折叠和右值引用参数
 ### 左值 & 右值
@@ -127,6 +131,10 @@ struct remove_reference
 template<typename _Tp>
 struct remove_reference<_Tp&>
 { typedef _Tp     type; };
+
+template<typename _Tp>
+struct remove_reference<_Tp&&>
+{ typedef _Tp   type; };
 ```
 ## std::move
 我们不能直接将一个右值引用绑定到一个左值上，但是`std::move`可以帮我们做到这件事，标准库是这样定义`std::move`的：
@@ -141,6 +149,17 @@ typename remove_reference<T>::type&& move(T&& t)
 返回类型是模板参数T类型的右值引用，返回参数前面加上typename关键字是因为作用域运算符::后面跟的可能是类型或者是static数据成员，我们用typename来显示指示这里的`remove_reference<T>::type`是一个类型而不是static数据成员，`remove_reference`函数会去掉T的引用属性(如果T是引用类型会得到T所引用对象)。  
 这里的左值往右值转换是由`static_cast`来完成的，虽然不能隐式地将一个左值转换成右值，但是我们可以用`static_cast`来显示的转换。
 
+对于右值:
+```cpp
+std::move(string("aaa"));
+```
+经过模板参数推导后，模板参数t类型为string&&，模板类型T为string。remove_reference::type类型为string，返回类型为string&&，因此，对于右值类型string&&的参数，直接返回string&&右值类型。
+对于左值:
+```cpp
+string s("aaa");
+std::move(s);
+```
+经过模板参数推导后，模板参数t类型为string&, 模板类型T为string&，remove_reference::type类型为string，因为remove_reference会把引用属性去掉，返回string&&，所以传递给std::move左值类型的变量，std::move会返回右值类型。
 ## std::forward完美转发
 看个例子:
 ```cpp
@@ -222,6 +241,8 @@ forward(typename remove_reference<_Tp>::type&& __t) _NOEXCEPT
 }
 
 ```
+第一个函数用来转发左值，假如传入的参数是string&类型，那么_Tp是string&类型，返回string& &&类型，折叠后就是string&。  
+第二个函数用来转发右值。假如传入的参数是string&&类型，那么_Tp的类型推断出来是string或者string&&，返回值也是string&&。 
 与`std::move`不同，`std::forward`必须通过显式模板实参来调用。`std::forward`返回该显示实参类型的右值引用。即，`std::forward<T>`的返回类型是`T&&`。当用于一个指向模板参数类型的右值引用函数参数(`T&&`)时，`std::forward`会保持实参类型的所有细节。
 ```cpp
 template<typename Type> void intermediary(Type &&arg)
