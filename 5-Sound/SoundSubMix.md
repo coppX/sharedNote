@@ -21,12 +21,12 @@
  2.子混音效果延迟预设(SubmixEffectDelayPreset)
  3.子混音效果动态处理器预设(SubmixEffectDynamicsProcessorPreset)
  4.子混音效果过滤器预设(SubmixEffectFilterPreset)
- 5.(SubmixEffectFlexiverbPreset)
+ 5.子混音效果Flexiverb预设(SubmixEffectFlexiverbPreset)
  6.子混音效果多频段压缩器预设(SubmixEffectMultibandCompressorPreset)
  7.子混音效果混响预设(SubmixEffectReverbPreset)
  8.子混音效果立体声延迟预设(SubmixEffectStereoDelayPreset)
  9.子混音效果子混音均衡器预设(SubmixEffectSubmixEQPreset)
- 10.(SubmixEffectTapDelayPreset)
+ 10.子混音效果节拍延迟预设(SubmixEffectTapDelayPreset)
 
 # 音频效果器
 ## 均衡效果器(EQ)
