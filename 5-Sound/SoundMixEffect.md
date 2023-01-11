@@ -103,9 +103,12 @@ Focus Azimuth表示的是图里面绿色扇形的角度，Non Focus Azimuth表�
 
 # 源效果
 
+# 音频体积
+
 # 总线
 
-# 子混合和子混合发送
+# submix
+
 
 # 混响
 ## 音频体积
