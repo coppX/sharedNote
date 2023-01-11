@@ -15,6 +15,7 @@
 ![](./submixImg/5.png)
 在添加预设的时候可以选择创建新的Preset，点击Submix Effect Preset之后，会弹出保存文件路径的选择框。设置完新建Preset的名字后点击save保存，会弹窗让我们选择创建的Preset的类型，然后我们选择想要的Preset就能完成Preset文件的创建了
 ![](./submixImg/6.png)
+![](./submixImg/7.png)
 图中的Preset类型分别为:
  1.子混音效果卷积混响预设(SubmixEffectConvolutionReverbPreset)
  2.子混音效果延迟预设(SubmixEffectDelayPreset)
